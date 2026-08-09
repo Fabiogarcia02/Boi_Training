@@ -1,0 +1,25 @@
+---
+description: Obriga referência aos agentes em .cursor/agents ao codar neste projeto
+alwaysApply: true
+---
+
+# Referência obrigatória aos agentes
+
+Antes de implementar ou alterar código neste repositório:
+
+1. Leia `.cursor/agents/README.md`.
+2. Abra o `SKILL.md` de cada agente relevante à tarefa.
+3. Siga os princípios e formatos de output desses agentes.
+
+## Roteamento rápido
+
+- App mobile (`apps/mobile/**`) → `react-native-developer` + `mobile-architect`
+- UI/telas/componentes → também `mobile-ui-ux-designer`
+- Banco/Auth/RLS/migrations (`supabase/**`) → `supabase-engineer` + `mobile-security-engineer`
+- Integrações/secrets/edge → `api-integration-engineer`
+- Planejamento / decomposição → `software-project-manager` (não implementar)
+- Antes de concluir → `qa-engineer` + `code-reviewer`
+- Performance/release → `performance-release-engineer`
+
+Não invente stack fora de React Native, TypeScript, Supabase e PostgreSQL sem justificativa.
+Reutilize padrões existentes; mudanças incrementais.
