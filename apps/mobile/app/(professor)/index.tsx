@@ -22,7 +22,7 @@ type StudentRow = {
 };
 
 export default function ProfessorHome() {
-  const { profile, signOut } = useAuth();
+  const { profile } = useAuth();
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
@@ -120,8 +120,8 @@ export default function ProfessorHome() {
           <Title>{profile?.full_name ?? 'Painel'}</Title>
           <Muted>Vincule alunos e monte treinos.</Muted>
         </View>
-        <Pressable onPress={signOut}>
-          <Text style={styles.logout}>Sair</Text>
+        <Pressable onPress={() => router.push('/profile')}>
+          <Text style={styles.logout}>Perfil</Text>
         </Pressable>
       </View>
 

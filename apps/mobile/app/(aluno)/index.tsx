@@ -18,7 +18,7 @@ import { Workout, WorkoutExercise } from '../../lib/types';
 type TodayWorkout = Workout & { exercises: WorkoutExercise[] };
 
 export default function AlunoDashboard() {
-  const { profile, signOut } = useAuth();
+  const { profile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [workout, setWorkout] = useState<TodayWorkout | null>(null);
   const [weekDone, setWeekDone] = useState(0);
@@ -147,8 +147,14 @@ export default function AlunoDashboard() {
         </Muted>
       </Card>
 
-      <Pressable onPress={signOut}>
-        <Text style={styles.logout}>Sair</Text>
+      <Button
+        label="Histórico de treinos"
+        variant="secondary"
+        onPress={() => router.push('/(aluno)/history')}
+      />
+
+      <Pressable onPress={() => router.push('/profile')}>
+        <Text style={styles.logout}>Perfil</Text>
       </Pressable>
     </ScrollView>
   );
