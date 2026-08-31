@@ -170,8 +170,8 @@ export default function SessionScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#0F0F0F', padding: spacing.lg },
-  centered: { flex: 1, backgroundColor: '#0F0F0F', alignItems: 'center', justifyContent: 'center' },
+  safe: { flex: 1, backgroundColor: colors.black, padding: spacing.lg },
+  centered: { flex: 1, backgroundColor: colors.black, alignItems: 'center', justifyContent: 'center' },
   top: {
     flexDirection: 'row',
     justifyContent: 'space-between',

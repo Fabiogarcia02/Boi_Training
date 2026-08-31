@@ -92,7 +92,13 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const signIn = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error: error?.message };
+    return {
+      error: error?.status === 429
+        ? 'Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.'
+        : error?.status === 400
+          ? 'E-mail ou senha incorretos. Se acabou de criar a conta, confirme o e-mail antes de entrar.'
+        : error?.message,
+    };
   }, []);
 
   const signUp = useCallback(
@@ -107,7 +113,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
           },
         },
       });
-      return { error: error?.message };
+      return {
+        error: error?.status === 429
+          ? 'Limite temporário de cadastros atingido. Aguarde alguns minutos antes de tentar novamente.'
+          : error?.message,
+      };
     },
     [],
   );

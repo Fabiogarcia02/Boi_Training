@@ -15,6 +15,10 @@ Aplicativo de treino para **professores** e **alunos**, com backend no **Supabas
 1. Crie um projeto em [supabase.com](https://supabase.com)
 2. No SQL Editor (ou CLI), aplique a migration:
    - [`supabase/migrations/20260809190317_initial_schema.sql`](supabase/migrations/20260809190317_initial_schema.sql)
+   - [`supabase/migrations/20260831120000_student_anamnesis.sql`](supabase/migrations/20260831120000_student_anamnesis.sql) — anamnese obrigatória e relatório para o professor
+   - [`supabase/migrations/20260831130000_backfill_profiles.sql`](supabase/migrations/20260831130000_backfill_profiles.sql) — corrige perfis de usuários já existentes
+   - [`supabase/migrations/20260831140000_expand_anamnesis_flow.sql`](supabase/migrations/20260831140000_expand_anamnesis_flow.sql) — fluxo guiado, PAR-Q, rascunho e disponibilidade semanal
+   - [`supabase/migrations/20260831150000_anamnesis_draft_defaults.sql`](supabase/migrations/20260831150000_anamnesis_draft_defaults.sql) — permite salvar rascunhos sem contato informado
 3. Em **Authentication → Providers**, desative “Confirm email” enquanto testa
 4. Copie **Project URL** e **anon/publishable key**
 

@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 import * as aesjs from 'aes-js';
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
 class LargeSecureStore {
   private async _encrypt(key: string, value: string) {
@@ -25,6 +26,8 @@ class LargeSecureStore {
   }
 
   async getItem(key: string) {
+    // SecureStore possui suporte nativo, mas não funciona completamente no web.
+    if (Platform.OS === 'web') return AsyncStorage.getItem(key);
     const encrypted = await AsyncStorage.getItem(key);
     if (!encrypted) return encrypted;
     return this._decrypt(key, encrypted);
@@ -32,10 +35,15 @@ class LargeSecureStore {
 
   async removeItem(key: string) {
     await AsyncStorage.removeItem(key);
+    if (Platform.OS === 'web') return;
     await SecureStore.deleteItemAsync(key);
   }
 
   async setItem(key: string, value: string) {
+    if (Platform.OS === 'web') {
+      await AsyncStorage.setItem(key, value);
+      return;
+    }
     const encrypted = await this._encrypt(key, value);
     await AsyncStorage.setItem(key, encrypted);
   }

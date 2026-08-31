@@ -9,7 +9,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { colors, spacing } from '../constants/theme';
+import { colors, radius, spacing, typography } from '../constants/theme';
 
 export function Screen({ children, style }: PropsWithChildren<{ style?: ViewStyle }>) {
   return <View style={[styles.screen, style]}>{children}</View>;
@@ -50,6 +50,7 @@ export function Button({
 }) {
   return (
     <Pressable
+      accessibilityRole="button"
       onPress={onPress}
       disabled={disabled || loading}
       style={({ pressed }) => [
@@ -81,6 +82,7 @@ export function Input(props: TextInputProps) {
     <TextInput
       placeholderTextColor={colors.muted}
       {...props}
+      accessibilityRole="text"
       style={[styles.input, props.style]}
     />
   );
@@ -113,12 +115,15 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '800',
     color: colors.ink,
+    fontFamily: typography.display,
+    letterSpacing: -0.3,
   },
   subtitle: {
     fontSize: 15,
     color: colors.muted,
     marginTop: 6,
     lineHeight: 22,
+    fontFamily: typography.body,
   },
   label: {
     fontSize: 13,
@@ -126,23 +131,25 @@ const styles = StyleSheet.create({
     color: colors.red,
     letterSpacing: 0.6,
     textTransform: 'uppercase',
+    fontFamily: typography.body,
   },
   muted: {
     color: colors.muted,
     fontSize: 14,
     lineHeight: 20,
+    fontFamily: typography.body,
   },
   card: {
     backgroundColor: colors.surface,
-    borderRadius: 18,
+    borderRadius: radius.md,
     padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
   },
   button: {
     backgroundColor: colors.red,
-    borderRadius: 14,
-    minHeight: 48,
+    borderRadius: radius.sm,
+    minHeight: 52,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.md,
@@ -165,19 +172,24 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '700',
     fontSize: 15,
+    fontFamily: typography.body,
   },
   buttonTextDark: {
     color: colors.ink,
   },
   input: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.secondary,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 14,
+    borderRadius: radius.sm,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,
     color: colors.ink,
+    fontFamily: typography.body,
+    minHeight: 52,
+    minWidth: 0,
+    flexShrink: 1,
   },
   stat: {
     flex: 1,
@@ -201,7 +213,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.redSoft,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 999,
+    borderRadius: radius.pill,
   },
   badgeNeutral: {
     backgroundColor: '#F0EEEA',

@@ -48,3 +48,25 @@ export type SetLog = {
   reps: number;
   weight_kg: number;
 };
+
+export type StudentAnamnesis = {
+  id: string;
+  student_id: string;
+  birth_date: string | null;
+  height_cm: number | null;
+  weight_kg: number | null;
+  goal: string;
+  experience_level: string;
+  health_conditions: string;
+  injuries: string;
+  medications: string;
+  exercise_restrictions: string;
+  emergency_contact: string;
+  medical_clearance: boolean;
+  consent: boolean;
+  created_at: string;
+  updated_at: string;
+  available_training_days: string[];
+  parq_answers: Record<string, boolean>;
+  is_complete: boolean;
+};
