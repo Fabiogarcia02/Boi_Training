@@ -1,68 +1,57 @@
 # Boi Training — Touro Fit
 
-Aplicativo de treino para **professores** e **alunos**, com backend no **Supabase** (sem servidor próprio pago) e app mobile em **Expo (React Native)**.
+Aplicativo mobile de acompanhamento físico para um professor e todos os alunos da plataforma, com Expo, React Native e Supabase.
 
-## Stack
+## Recursos
 
-- `apps/mobile` — Expo + TypeScript + Expo Router
-- `supabase/` — Postgres schema, RLS e seed
-- Auth, banco e API via Supabase free tier
+- cadastro e login de professor ou aluno;
+- anamnese obrigatória antes de liberar os recursos do aluno;
+- histórico completo das versões anteriores da anamnese;
+- professor com acesso automático a todos os alunos;
+- perfis com foto privada, nome, telefone e apresentação;
+- criação de treinos usando catálogo com imagens e vídeos;
+- agenda semanal do professor e solicitação de horários pelo aluno;
+- central de notificações e fila segura de e-mails;
+- registro de tokens para notificações push.
 
-## Como rodar
+## Como executar
 
-### 1. Projeto Supabase
-
-1. Crie um projeto em [supabase.com](https://supabase.com)
-2. No SQL Editor (ou CLI), aplique a migration:
-   - [`supabase/migrations/20260809190317_initial_schema.sql`](supabase/migrations/20260809190317_initial_schema.sql)
-   - [`supabase/migrations/20260831120000_student_anamnesis.sql`](supabase/migrations/20260831120000_student_anamnesis.sql) — anamnese obrigatória e relatório para o professor
-   - [`supabase/migrations/20260831130000_backfill_profiles.sql`](supabase/migrations/20260831130000_backfill_profiles.sql) — corrige perfis de usuários já existentes
-   - [`supabase/migrations/20260831140000_expand_anamnesis_flow.sql`](supabase/migrations/20260831140000_expand_anamnesis_flow.sql) — fluxo guiado, PAR-Q, rascunho e disponibilidade semanal
-   - [`supabase/migrations/20260831150000_anamnesis_draft_defaults.sql`](supabase/migrations/20260831150000_anamnesis_draft_defaults.sql) — permite salvar rascunhos sem contato informado
-   - [`supabase/migrations/20260901100000_exercise_catalog.sql`](supabase/migrations/20260901100000_exercise_catalog.sql) — catálogo de exercícios com imagens e vídeos de execução
-   - [`supabase/migrations/20260901100000_exercise_catalog.sql`](supabase/migrations/20260901100000_exercise_catalog.sql) — catálogo de exercícios com imagem e vídeo
-3. Em **Authentication → Providers**, desative “Confirm email” enquanto testa
-4. Copie **Project URL** e **anon/publishable key**
-
-Com CLI (opcional):
-
-```bash
-npx supabase link --project-ref SEU_PROJECT_REF
-npx supabase db push
-```
-
-### 2. App mobile
-
-```bash
+```powershell
 cd apps/mobile
-cp .env.example .env
-# edite .env com URL e anon key
-npm start
+npm install
+npx expo start -c
 ```
 
-Abra no Expo Go (Android/iOS) ou no emulador.
+As variáveis abaixo devem existir em `apps/mobile/.env`:
 
-### 3. Fluxo de teste
-
-1. Cadastre um usuário **Professor** e um **Aluno**
-2. No app do professor, vincule o aluno pelo **e-mail**
-3. Abra o aluno → **Criar treino**
-4. Entre como aluno → dashboard → **Começar** → registrar séries
-
-## Estrutura
-
+```env
+EXPO_PUBLIC_SUPABASE_URL=https://SEU-PROJETO.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=SUA_CHAVE_ANON
 ```
-BOI_TRAINING/
-├── apps/mobile/          # App Expo
-├── supabase/
-│   ├── migrations/       # Schema + RLS
-│   └── seed.sql
-├── README.md
-└── Touro Fit Vitrine (standalone).html  # protótipo visual
-```
+
+As migrations estão em `supabase/migrations` e devem ser executadas pela ordem do nome do arquivo. Elas já foram aplicadas no projeto Supabase usado durante o desenvolvimento.
+
+## Fluxo atual
+
+1. O aluno cria a conta e preenche a anamnese.
+2. O professor visualiza automaticamente o aluno no painel.
+3. O professor consulta a ficha atual, o histórico e cria treinos.
+4. O aluno acompanha treinos, exercícios, vídeos e agenda horários.
+5. Alterações de treinos, exercícios e agenda geram notificações internas.
+
+## Notificações externas
+
+O banco mantém tokens push e uma fila de e-mails. O envio remoto exige configuração externa:
+
+- push: credenciais FCM/APNs e build de desenvolvimento ou produção do Expo;
+- e-mail: chave de um provedor como Resend, SendGrid ou SMTP.
+
+Esses segredos nunca devem ser colocados no aplicativo ou em variáveis `EXPO_PUBLIC_*`.
 
 ## Segurança
 
-- RLS em todas as tabelas
-- Role guardada em `profiles` (não use `user_metadata` para autorização)
-- App usa só a chave `anon` — nunca a `service_role`
+- RLS habilitado nas tabelas;
+- fotos em bucket privado com links temporários;
+- alunos enxergam somente o próprio perfil e o professor;
+- o professor enxerga todos os alunos e suas anamneses;
+- o aplicativo utiliza apenas a chave anônima do Supabase.
