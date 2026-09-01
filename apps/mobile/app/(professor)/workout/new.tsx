@@ -1,180 +1,33 @@
-import { useMemo, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Alert, Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Button, Card, Input, Label, Muted } from '../../../components/ui';
-import { colors, spacing } from '../../../constants/theme';
+import { Button, Card, Input, Label, Muted, Title } from '../../../components/ui';
+import { colors, radius, spacing } from '../../../constants/theme';
 import { useAuth } from '../../../contexts/AuthContext';
 import { supabase } from '../../../lib/supabase';
+import { ExerciseCatalog } from '../../../lib/types';
 
-type DraftExercise = {
-  name: string;
-  muscle_group: string;
-  sets: string;
-  reps: string;
-  target_weight_kg: string;
-};
-
-const emptyExercise = (): DraftExercise => ({
-  name: '',
-  muscle_group: '',
-  sets: '3',
-  reps: '10',
-  target_weight_kg: '20',
-});
+type DraftExercise = { catalog_exercise_id?: string; name: string; muscle_group: string; sets: string; reps: string; target_weight_kg: string; image_url?: string; video_url?: string };
+const emptyExercise = (): DraftExercise => ({ name: '', muscle_group: '', sets: '', reps: '', target_weight_kg: '' });
 
 export default function NewWorkout() {
   const { studentId } = useLocalSearchParams<{ studentId: string }>();
   const { profile } = useAuth();
-  const [title, setTitle] = useState('Peito & Tríceps');
-  const [focus, setFocus] = useState('Empurrar');
-  const [duration, setDuration] = useState('45');
-  const [level, setLevel] = useState('Intermediário');
-  const [exercises, setExercises] = useState<DraftExercise[]>([
-    {
-      name: 'Supino Reto',
-      muscle_group: 'Peito',
-      sets: '4',
-      reps: '10',
-      target_weight_kg: '40',
-    },
-    {
-      name: 'Crucifixo',
-      muscle_group: 'Peito',
-      sets: '3',
-      reps: '12',
-      target_weight_kg: '14',
-    },
-  ]);
-  const [saving, setSaving] = useState(false);
-
-  const canSave = useMemo(
-    () => Boolean(title.trim() && studentId && profile && exercises.every((e) => e.name.trim())),
-    [title, studentId, profile, exercises],
-  );
-
-  function updateExercise(index: number, patch: Partial<DraftExercise>) {
-    setExercises((prev) => prev.map((item, i) => (i === index ? { ...item, ...patch } : item)));
-  }
-
+  const [title, setTitle] = useState(''); const [focus, setFocus] = useState(''); const [duration, setDuration] = useState(''); const [level, setLevel] = useState('');
+  const [exercises, setExercises] = useState<DraftExercise[]>([emptyExercise()]); const [catalog, setCatalog] = useState<ExerciseCatalog[]>([]); const [search, setSearch] = useState(''); const [picker, setPicker] = useState<number | null>(null); const [loadingCatalog, setLoadingCatalog] = useState(true); const [saving, setSaving] = useState(false);
+  useEffect(() => { supabase.from('exercise_catalog').select('*').order('name').then(({ data, error }) => { if (error) Alert.alert('Catálogo indisponível', error.message); setCatalog((data as ExerciseCatalog[]) ?? []); setLoadingCatalog(false); }); }, []);
+  const filteredCatalog = useMemo(() => catalog.filter((item) => `${item.name} ${item.muscle_group}`.toLowerCase().includes(search.toLowerCase())), [catalog, search]);
+  const canSave = Boolean(title.trim() && studentId && profile && exercises.length && exercises.every((e) => e.name.trim() && Number(e.sets) > 0 && Number(e.reps) > 0));
+  function updateExercise(index: number, patch: Partial<DraftExercise>) { setExercises((prev) => prev.map((item, i) => i === index ? { ...item, ...patch } : item)); }
+  function chooseExercise(item: ExerciseCatalog) { if (picker === null) return; updateExercise(picker, { catalog_exercise_id: item.id, name: item.name, muscle_group: item.muscle_group, image_url: item.image_url ?? undefined, video_url: item.video_url ?? undefined, sets: '3', reps: '10', target_weight_kg: '' }); setPicker(null); setSearch(''); }
   async function save() {
-    if (!profile || !studentId || !canSave) return;
-    setSaving(true);
-
-    const today = new Date().toISOString().slice(0, 10);
-    const { data: workout, error } = await supabase
-      .from('workouts')
-      .insert({
-        coach_id: profile.id,
-        student_id: studentId,
-        title: title.trim(),
-        focus: focus.trim() || null,
-        duration_minutes: Number(duration) || 45,
-        level: level.trim() || 'Intermediário',
-        scheduled_for: today,
-      })
-      .select('id')
-      .single();
-
-    if (error || !workout) {
-      setSaving(false);
-      Alert.alert('Erro', error?.message ?? 'Falha ao criar treino');
-      return;
-    }
-
-    const rows = exercises.map((ex, index) => ({
-      workout_id: workout.id,
-      name: ex.name.trim(),
-      muscle_group: ex.muscle_group.trim() || null,
-      sets: Number(ex.sets) || 3,
-      reps: Number(ex.reps) || 10,
-      target_weight_kg: Number(ex.target_weight_kg) || null,
-      sort_order: index + 1,
-    }));
-
-    const { error: exError } = await supabase.from('workout_exercises').insert(rows);
-    setSaving(false);
-
-    if (exError) {
-      Alert.alert('Erro', exError.message);
-      return;
-    }
-
-    Alert.alert('Treino criado', 'O aluno já pode ver no dashboard.', [
-      { text: 'OK', onPress: () => router.back() },
-    ]);
+    if (!profile || !studentId || !canSave) { Alert.alert('Complete o treino', 'Informe título, séries e repetições para todos os exercícios.'); return; }
+    setSaving(true); const { data: workout, error } = await supabase.from('workouts').insert({ coach_id: profile.id, student_id: studentId, title: title.trim(), focus: focus.trim() || null, duration_minutes: Number(duration) || 45, level: level.trim() || 'Intermediário', scheduled_for: new Date().toISOString().slice(0, 10) }).select('id').single();
+    if (error || !workout) { setSaving(false); Alert.alert('Erro', error?.message ?? 'Falha ao criar treino'); return; }
+    const { error: exError } = await supabase.from('workout_exercises').insert(exercises.map((ex, index) => ({ workout_id: workout.id, catalog_exercise_id: ex.catalog_exercise_id ?? null, name: ex.name.trim(), muscle_group: ex.muscle_group.trim() || null, sets: Number(ex.sets), reps: Number(ex.reps), target_weight_kg: ex.target_weight_kg ? Number(ex.target_weight_kg.replace(',', '.')) : null, image_url: ex.image_url ?? null, video_url: ex.video_url ?? null, sort_order: index + 1 })));
+    setSaving(false); if (exError) { Alert.alert('Erro', exError.message); return; } Alert.alert('Treino criado', 'O aluno já pode ver este treino.', [{ text: 'OK', onPress: () => router.back() }]);
   }
-
-  return (
-    <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-      <Label>Novo treino</Label>
-      <Input placeholder="Título" value={title} onChangeText={setTitle} />
-      <Input placeholder="Foco (ex: Empurrar)" value={focus} onChangeText={setFocus} />
-      <View style={styles.row}>
-        <Input
-          style={{ flex: 1 }}
-          placeholder="Duração (min)"
-          keyboardType="numeric"
-          value={duration}
-          onChangeText={setDuration}
-        />
-        <Input style={{ flex: 1 }} placeholder="Nível" value={level} onChangeText={setLevel} />
-      </View>
-
-      <Label>Exercícios</Label>
-      {exercises.map((ex, index) => (
-        <Card key={index} style={styles.exCard}>
-          <Text style={styles.exTitle}>Exercício {index + 1}</Text>
-          <Input
-            placeholder="Nome"
-            value={ex.name}
-            onChangeText={(v) => updateExercise(index, { name: v })}
-          />
-          <Input
-            placeholder="Grupo muscular"
-            value={ex.muscle_group}
-            onChangeText={(v) => updateExercise(index, { muscle_group: v })}
-          />
-          <View style={styles.row}>
-            <Input
-              style={{ flex: 1 }}
-              placeholder="Séries"
-              keyboardType="numeric"
-              value={ex.sets}
-              onChangeText={(v) => updateExercise(index, { sets: v })}
-            />
-            <Input
-              style={{ flex: 1 }}
-              placeholder="Reps"
-              keyboardType="numeric"
-              value={ex.reps}
-              onChangeText={(v) => updateExercise(index, { reps: v })}
-            />
-            <Input
-              style={{ flex: 1 }}
-              placeholder="Kg"
-              keyboardType="numeric"
-              value={ex.target_weight_kg}
-              onChangeText={(v) => updateExercise(index, { target_weight_kg: v })}
-            />
-          </View>
-        </Card>
-      ))}
-
-      <Button
-        label="Adicionar exercício"
-        variant="ghost"
-        onPress={() => setExercises((prev) => [...prev, emptyExercise()])}
-      />
-      <Button label="Salvar treino" onPress={save} loading={saving} disabled={!canSave} />
-      <Muted>O treino fica agendado para hoje e aparece no app do aluno.</Muted>
-    </ScrollView>
-  );
+  return <ScrollView style={styles.scroll} contentContainerStyle={styles.content}><Title>Novo treino</Title><Muted>Preencha os campos abaixo. Os textos cinza explicam cada informação.</Muted><Card style={styles.card}><Input placeholder="Título do treino" value={title} onChangeText={setTitle} /><Muted>Ex.: Treino de força — membros inferiores</Muted><Input placeholder="Foco do treino" value={focus} onChangeText={setFocus} /><Muted>Ex.: Força, hipertrofia ou condicionamento</Muted><View style={styles.row}><View style={styles.flex}><Input placeholder="Duração (min)" keyboardType="number-pad" value={duration} onChangeText={setDuration} /><Muted>Tempo estimado</Muted></View><View style={styles.flex}><Input placeholder="Nível" value={level} onChangeText={setLevel} /><Muted>Ex.: iniciante</Muted></View></View></Card><Label>Exercícios</Label>{exercises.map((ex, index) => <Card key={index} style={styles.card}>{ex.image_url ? <Image source={{ uri: ex.image_url }} style={styles.exerciseImage} /> : null}<Text style={styles.exerciseTitle}>Exercício {index + 1}</Text><Button label={ex.name || 'Selecionar exercício do catálogo'} variant="ghost" onPress={() => setPicker(index)} /><Muted>Escolha uma gravura para preencher nome, grupo e vídeo automaticamente.</Muted><View style={styles.row}><View style={styles.flex}><Input placeholder="Séries" keyboardType="number-pad" value={ex.sets} onChangeText={(v) => updateExercise(index, { sets: v })} /><Muted>Quantidade de séries</Muted></View><View style={styles.flex}><Input placeholder="Repetições" keyboardType="number-pad" value={ex.reps} onChangeText={(v) => updateExercise(index, { reps: v })} /><Muted>Repetições por série</Muted></View><View style={styles.flex}><Input placeholder="Carga (kg)" keyboardType="decimal-pad" value={ex.target_weight_kg} onChangeText={(v) => updateExercise(index, { target_weight_kg: v })} /><Muted>Peso sugerido</Muted></View></View>{exercises.length > 1 ? <Pressable onPress={() => setExercises((prev) => prev.filter((_, i) => i !== index))}><Text style={styles.remove}>Remover exercício</Text></Pressable> : null}</Card>)}<Button label="Adicionar outro exercício" variant="ghost" onPress={() => setExercises((prev) => [...prev, emptyExercise()])} /><Button label="Salvar treino" onPress={save} loading={saving} disabled={!canSave} /><Modal visible={picker !== null} animationType="slide" onRequestClose={() => setPicker(null)}><View style={styles.modal}><View style={styles.modalHeader}><Title>Catálogo de exercícios</Title><Pressable onPress={() => setPicker(null)}><Text style={styles.close}>Fechar</Text></Pressable></View><Input placeholder="Buscar por nome ou músculo" value={search} onChangeText={setSearch} />{loadingCatalog ? <ActivityIndicator color={colors.red} style={styles.loader} /> : <ScrollView contentContainerStyle={styles.catalog}>{filteredCatalog.map((item) => <Pressable key={item.id} style={styles.catalogItem} onPress={() => chooseExercise(item)}>{item.image_url ? <Image source={{ uri: item.image_url }} style={styles.catalogImage} /> : <View style={styles.imageFallback}><Text>TF</Text></View>}<View style={styles.catalogCopy}><Text style={styles.catalogName}>{item.name}</Text><Muted>{item.muscle_group}</Muted><Muted>{item.description}</Muted></View></Pressable>)}</ScrollView>}</View></Modal></ScrollView>;
 }
 
-const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: spacing.lg, gap: spacing.sm, paddingBottom: 48 },
-  row: { flexDirection: 'row', gap: 8 },
-  exCard: { gap: 8 },
-  exTitle: { fontWeight: '700', color: colors.ink },
-});
+const styles = StyleSheet.create({ scroll: { flex: 1, backgroundColor: colors.bg }, content: { padding: spacing.lg, gap: spacing.sm, paddingBottom: spacing.xxl }, card: { gap: spacing.xs }, row: { flexDirection: 'row', gap: spacing.xs, minWidth: 0 }, flex: { flex: 1, minWidth: 0 }, exerciseTitle: { color: colors.ink, fontSize: 17, fontWeight: '800' }, exerciseImage: { width: '100%', height: 150, borderRadius: radius.sm }, remove: { color: colors.red, fontWeight: '800', paddingVertical: spacing.xs }, modal: { flex: 1, backgroundColor: colors.bg, padding: spacing.lg, paddingTop: spacing.xl }, modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md }, close: { color: colors.red, fontWeight: '800' }, loader: { marginTop: spacing.xl }, catalog: { gap: spacing.sm, paddingVertical: spacing.md }, catalogItem: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.xs, flexDirection: 'row', gap: spacing.sm, borderWidth: 1, borderColor: colors.border }, catalogImage: { width: 92, height: 92, borderRadius: radius.sm }, imageFallback: { width: 92, height: 92, borderRadius: radius.sm, backgroundColor: colors.black, alignItems: 'center', justifyContent: 'center' }, imageFallbackText: { color: colors.surface }, catalogCopy: { flex: 1, gap: 3 }, catalogName: { color: colors.ink, fontSize: 16, fontWeight: '800' } });

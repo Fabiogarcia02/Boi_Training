@@ -8,6 +8,7 @@ import {
   TextInputProps,
   View,
   ViewStyle,
+  StyleProp,
 } from 'react-native';
 import { colors, radius, spacing, typography } from '../constants/theme';
 
@@ -31,7 +32,7 @@ export function Muted({ children }: PropsWithChildren) {
   return <Text style={styles.muted}>{children}</Text>;
 }
 
-export function Card({ children, style }: PropsWithChildren<{ style?: ViewStyle }>) {
+export function Card({ children, style }: PropsWithChildren<{ style?: StyleProp<ViewStyle> }>) {
   return <View style={[styles.card, style]}>{children}</View>;
 }
 

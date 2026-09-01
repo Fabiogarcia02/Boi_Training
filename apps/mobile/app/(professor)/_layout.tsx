@@ -13,7 +13,9 @@ export default function ProfessorLayout() {
     >
       <Stack.Screen name="index" options={{ title: 'Alunos' }} />
       <Stack.Screen name="student/[id]" options={{ title: 'Aluno' }} />
+      <Stack.Screen name="student/history" options={{ title: 'Histórico da anamnese' }} />
       <Stack.Screen name="workout/new" options={{ title: 'Novo treino' }} />
+      <Stack.Screen name="agenda" options={{ title: 'Agenda' }} />
     </Stack>
   );
 }

@@ -29,7 +29,9 @@
     "plugins": [
       "expo-secure-store",
       "expo-router",
-      "expo-font"
+      "expo-font",
+      "expo-notifications",
+      ["expo-image-picker", { "photosPermission": "Permita que o Touro Fit acesse suas fotos para atualizar sua imagem de perfil." }]
     ],
     "experiments": {
       "typedRoutes": true

@@ -19,6 +19,8 @@ Aplicativo de treino para **professores** e **alunos**, com backend no **Supabas
    - [`supabase/migrations/20260831130000_backfill_profiles.sql`](supabase/migrations/20260831130000_backfill_profiles.sql) — corrige perfis de usuários já existentes
    - [`supabase/migrations/20260831140000_expand_anamnesis_flow.sql`](supabase/migrations/20260831140000_expand_anamnesis_flow.sql) — fluxo guiado, PAR-Q, rascunho e disponibilidade semanal
    - [`supabase/migrations/20260831150000_anamnesis_draft_defaults.sql`](supabase/migrations/20260831150000_anamnesis_draft_defaults.sql) — permite salvar rascunhos sem contato informado
+   - [`supabase/migrations/20260901100000_exercise_catalog.sql`](supabase/migrations/20260901100000_exercise_catalog.sql) — catálogo de exercícios com imagens e vídeos de execução
+   - [`supabase/migrations/20260901100000_exercise_catalog.sql`](supabase/migrations/20260901100000_exercise_catalog.sql) — catálogo de exercícios com imagem e vídeo
 3. Em **Authentication → Providers**, desative “Confirm email” enquanto testa
 4. Copie **Project URL** e **anon/publishable key**
 

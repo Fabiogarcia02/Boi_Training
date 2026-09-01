@@ -18,15 +18,11 @@ export default function Index() {
       return;
     }
     let active = true;
-    Promise.all([
-      supabase.from('student_anamneses').select('id').eq('student_id', profile.id).eq('is_complete', true).maybeSingle(),
-      supabase.from('coach_students').select('id').eq('student_id', profile.id).limit(1),
-    ]).then(([anamnesisResult, coachResult]) => {
+    supabase.from('student_anamneses').select('id').eq('student_id', profile.id).eq('is_complete', true).maybeSingle().then((anamnesisResult) => {
       if (!active) return;
       if (anamnesisResult.error) console.warn('anamnesis check error', anamnesisResult.error.message);
-      if (coachResult.error) console.warn('coach check error', coachResult.error.message);
       setAnamnesisComplete(Boolean(anamnesisResult.data));
-      setHasCoach((coachResult.data ?? []).length > 0);
+      setHasCoach(true);
     });
     return () => { active = false; };
   }, [profile]);
@@ -65,10 +61,6 @@ export default function Index() {
         </Muted>
       </Screen>
     );
-  }
-
-  if (profile.role === 'aluno' && !hasCoach) {
-    return <Redirect href="/aguardando-professor" />;
   }
 
   if (profile.role === 'aluno' && !anamnesisComplete) {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Badge, Card, Label, Muted, Screen } from '../../../components/ui';
 import { colors, spacing } from '../../../constants/theme';
@@ -57,6 +57,7 @@ export default function WorkoutDetails() {
       <Label>Exercícios</Label>
       {exercises.map((ex, index) => (
         <Card key={ex.id} style={styles.exercise}>
+          {ex.image_url ? <Image source={{ uri: ex.image_url }} style={styles.exerciseImage} /> : null}
           <View style={styles.row}>
             <Text style={styles.index}>{String(index + 1).padStart(2, '0')}</Text>
             <View style={{ flex: 1 }}>
@@ -68,6 +69,7 @@ export default function WorkoutDetails() {
             </View>
             {ex.muscle_group ? <Badge text={ex.muscle_group} /> : null}
           </View>
+          {ex.video_url ? <Pressable onPress={() => Linking.openURL(ex.video_url ?? '')}><Text style={styles.videoLink}>▶ Ver execução em vídeo</Text></Pressable> : null}
         </Card>
       ))}
     </ScrollView>
@@ -84,4 +86,6 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   index: { fontWeight: '800', color: colors.muted, width: 28 },
   exName: { fontSize: 16, fontWeight: '700', color: colors.ink },
+  exerciseImage: { width: '100%', height: 150, borderRadius: 12, marginBottom: 12 },
+  videoLink: { color: colors.red, fontWeight: '800', paddingTop: 10 },
 });

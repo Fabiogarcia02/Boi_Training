@@ -13,7 +13,8 @@ import { Badge, Button, Card, Label, Muted, Stat, Title } from '../../components
 import { colors, spacing } from '../../constants/theme';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
-import { Workout, WorkoutExercise } from '../../lib/types';
+import { Profile, Workout, WorkoutExercise } from '../../lib/types';
+import { Avatar } from '../../components/Avatar';
 
 type TodayWorkout = Workout & { exercises: WorkoutExercise[] };
 
@@ -22,6 +23,7 @@ export default function AlunoDashboard() {
   const [loading, setLoading] = useState(true);
   const [workout, setWorkout] = useState<TodayWorkout | null>(null);
   const [weekDone, setWeekDone] = useState(0);
+  const [coach, setCoach] = useState<Profile | null>(null);
 
   const load = useCallback(async () => {
     if (!profile) return;
@@ -59,6 +61,8 @@ export default function AlunoDashboard() {
       .gte('finished_at', weekAgo.toISOString());
 
     setWeekDone(count ?? 0);
+    const { data: coachProfile } = await supabase.from('profiles').select('*').eq('role', 'professor').limit(1).maybeSingle();
+    setCoach((coachProfile as Profile) ?? null);
     setLoading(false);
   }, [profile]);
 
@@ -108,10 +112,12 @@ export default function AlunoDashboard() {
           <Muted>Olá,</Muted>
           <Title>{firstName}</Title>
         </View>
-        <Badge text={`🔥 ${profile?.streak_days ?? 0} dias`} />
+        <View style={styles.headerActions}><Pressable onPress={() => router.push('/perfil')}><Avatar name={profile?.full_name ?? 'Aluno'} value={profile?.avatar_url} size={44} /></Pressable><Pressable onPress={() => router.push('/notificacoes')}><Text style={styles.action}>Notificações</Text></Pressable><Pressable onPress={() => router.push('/(aluno)/agenda')}><Text style={styles.action}>Agenda</Text></Pressable></View>
       </View>
 
+      <View style={styles.quickActions}><Button label="Meu perfil" variant="secondary" onPress={() => router.push('/perfil')} /><Button label="Agendar horário" variant="secondary" onPress={() => router.push('/(aluno)/agenda')} /><Button label="Notificações" variant="ghost" onPress={() => router.push('/notificacoes')} /></View>
       <Label>Treino de hoje</Label>
+      {coach && <Card style={styles.coachCard}><Avatar name={coach.full_name} value={coach.avatar_url} /><View><Muted>Seu professor</Muted><Text style={styles.coachName}>{coach.full_name}</Text></View></Card>}
       {workout ? (
         <Card style={styles.hero}>
           <Text style={styles.heroEyebrow}>TREINO DE HOJE</Text>
@@ -185,4 +191,6 @@ const styles = StyleSheet.create({
   tip: { backgroundColor: colors.redSoft, borderColor: colors.redSoft },
   emptyTitle: { fontWeight: '700', fontSize: 16, color: colors.ink, marginBottom: 4 },
   logout: { textAlign: 'center', color: colors.muted, marginTop: 8, fontWeight: '600' },
+  headerActions: { alignItems: 'flex-end', gap: 7 }, action: { color: colors.red, fontWeight: '800' }, avatar: { width: 42, height: 42, borderRadius: 21 },
+  coachCard: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 10 }, coachAvatar: { width: 48, height: 48, borderRadius: 24 }, coachName: { color: colors.ink, fontWeight: '800', fontSize: 16 }, quickActions: { gap: 8 },
 });

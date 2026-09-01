@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
+  Linking,
   Pressable,
   StyleSheet,
   Text,
@@ -136,6 +138,7 @@ export default function SessionScreen() {
       </View>
 
       <View style={styles.body}>
+        {current.image_url ? <Image source={{ uri: current.image_url }} style={styles.exerciseImage} /> : null}
         <Text style={styles.name}>{current.name}</Text>
         <Text style={styles.setLabel}>
           Série {Math.min(completedSets + 1, current.sets)} de {current.sets}
@@ -146,7 +149,7 @@ export default function SessionScreen() {
             <Text style={styles.metricValue}>{current.reps}</Text>
             <Text style={styles.metricLabel}>REPETIÇÕES</Text>
           </Card>
-          <Card style={styles.metric}>
+            <Card style={styles.metric}>
             <Text style={styles.metricValue}>{current.target_weight_kg ?? 0}</Text>
             <Text style={styles.metricLabel}>KG CARGA</Text>
           </Card>
@@ -155,6 +158,7 @@ export default function SessionScreen() {
         <Card style={styles.tip}>
           <Text style={styles.tipText}>Mais uma série e você bate seu recorde!</Text>
         </Card>
+        {current.video_url ? <Pressable onPress={() => Linking.openURL(current.video_url ?? '')}><Text style={styles.videoLink}>▶ Ver execução antes de começar</Text></Pressable> : null}
       </View>
 
       <View style={styles.footer}>
@@ -193,5 +197,7 @@ const styles = StyleSheet.create({
   metricLabel: { color: '#888', marginTop: 4, fontWeight: '700', fontSize: 12 },
   tip: { backgroundColor: '#1F1515', borderColor: '#3A2020' },
   tipText: { color: '#F5C2C0', fontWeight: '600' },
+  exerciseImage: { width: '100%', height: 170, borderRadius: 14 },
+  videoLink: { color: colors.red, fontWeight: '800', paddingTop: 4 },
   footer: { gap: 10 },
 });

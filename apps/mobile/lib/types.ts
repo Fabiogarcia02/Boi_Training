@@ -6,7 +6,12 @@ export type Profile = {
   role: UserRole;
   avatar_url: string | null;
   streak_days: number;
+  phone?: string | null;
+  bio?: string;
 };
+
+export type Notification = { id: string; user_id: string; title: string; body: string; kind: string; read_at: string | null; created_at: string };
+export type Appointment = { id: string; coach_id: string; student_id: string; starts_at: string; ends_at: string; status: 'requested' | 'confirmed' | 'cancelled' | 'completed'; notes: string };
 
 export type Workout = {
   id: string;
@@ -29,6 +34,26 @@ export type WorkoutExercise = {
   target_weight_kg: number | null;
   image_url: string | null;
   sort_order: number;
+  catalog_exercise_id?: string | null;
+  video_url?: string | null;
+};
+
+export type Availability = {
+  id: string;
+  coach_id: string;
+  weekday: number;
+  start_time: string;
+  end_time: string;
+  valid_month: string | null;
+};
+
+export type ExerciseCatalog = {
+  id: string;
+  name: string;
+  muscle_group: string;
+  description: string | null;
+  image_url: string | null;
+  video_url: string | null;
 };
 
 export type WorkoutSession = {
@@ -69,4 +94,13 @@ export type StudentAnamnesis = {
   available_training_days: string[];
   parq_answers: Record<string, boolean>;
   is_complete: boolean;
+};
+
+export type AnamnesisHistory = {
+  id: string;
+  student_id: string;
+  anamnesis_id: string | null;
+  snapshot: StudentAnamnesis;
+  changed_by: string | null;
+  created_at: string;
 };
