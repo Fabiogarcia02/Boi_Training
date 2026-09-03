@@ -37,7 +37,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const loadProfile = useCallback(async (userId: string) => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, full_name, role, avatar_url, streak_days')
+      .select('id, full_name, role, avatar_url, streak_days, phone, bio, birth_date, cref, specialties, city, instagram, created_at')
       .eq('id', userId)
       .maybeSingle();
 

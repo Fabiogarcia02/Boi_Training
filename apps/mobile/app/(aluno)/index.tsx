@@ -122,14 +122,14 @@ export default function AlunoDashboard() {
         <Card style={styles.hero}>
           <Text style={styles.heroEyebrow}>TREINO DE HOJE</Text>
           <Text style={styles.heroTitle}>{workout.title}</Text>
-          <Muted>
+          <Text style={styles.heroMeta}>
             {workout.duration_minutes} min · {workout.exercises.length} exercícios
-          </Muted>
+          </Text>
           <View style={styles.heroActions}>
             <Button label="Começar" onPress={startWorkout} />
             <Button
               label="Ver detalhes"
-              variant="ghost"
+              variant="inverted"
               onPress={() => router.push(`/(aluno)/workout/${workout.id}`)}
             />
           </View>
@@ -186,6 +186,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: -0.4,
   },
+  heroMeta: { color: '#E8E8E8', fontSize: 14, lineHeight: 20 },
   heroActions: { gap: 8, marginTop: 8 },
   statsRow: { flexDirection: 'row', gap: spacing.xs },
   tip: { backgroundColor: colors.redSoft, borderColor: colors.redSoft },

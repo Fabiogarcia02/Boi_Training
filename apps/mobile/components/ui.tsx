@@ -45,7 +45,7 @@ export function Button({
 }: {
   label: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'inverted';
   disabled?: boolean;
   loading?: boolean;
 }) {
@@ -58,17 +58,18 @@ export function Button({
         styles.button,
         variant === 'secondary' && styles.buttonSecondary,
         variant === 'ghost' && styles.buttonGhost,
+        variant === 'inverted' && styles.buttonInverted,
         (disabled || loading) && styles.buttonDisabled,
         pressed && styles.buttonPressed,
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? '#fff' : colors.ink} />
+        <ActivityIndicator color={variant === 'ghost' ? colors.ink : '#fff'} />
       ) : (
         <Text
           style={[
             styles.buttonText,
-            variant !== 'primary' && styles.buttonTextDark,
+            variant === 'ghost' && styles.buttonTextDark,
           ]}
         >
           {label}
@@ -159,9 +160,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.black,
   },
   buttonGhost: {
-    backgroundColor: 'transparent',
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  buttonInverted: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
   },
   buttonDisabled: {
     opacity: 0.5,

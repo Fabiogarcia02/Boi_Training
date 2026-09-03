@@ -8,6 +8,12 @@ export type Profile = {
   streak_days: number;
   phone?: string | null;
   bio?: string;
+  birth_date?: string | null;
+  cref?: string | null;
+  specialties?: string | null;
+  city?: string | null;
+  instagram?: string | null;
+  created_at?: string;
 };
 
 export type Notification = { id: string; user_id: string; title: string; body: string; kind: string; read_at: string | null; created_at: string };
@@ -22,6 +28,7 @@ export type Workout = {
   duration_minutes: number;
   level: string;
   scheduled_for: string | null;
+  created_at?: string;
 };
 
 export type WorkoutExercise = {
@@ -54,6 +61,24 @@ export type ExerciseCatalog = {
   description: string | null;
   image_url: string | null;
   video_url: string | null;
+  instructions?: string | null;
+  equipment?: string[];
+  video_source?: string;
+  audit_image_status?: 'correto' | 'incorreto' | 'pendente';
+  audit_video_status?: 'correto' | 'incorreto' | 'pendente';
+  audit_notes?: string | null;
+  category?: string | null;
+  primary_muscles?: string[];
+  secondary_muscles?: string[];
+};
+
+export type CoachExerciseVideo = {
+  id: string;
+  coach_id: string;
+  exercise_id: string;
+  video_url: string;
+  source: 'upload' | 'url';
+  storage_path: string | null;
 };
 
 export type WorkoutSession = {
@@ -63,6 +88,8 @@ export type WorkoutSession = {
   started_at: string;
   finished_at: string | null;
   status: 'in_progress' | 'completed' | 'cancelled';
+  perceived_exertion?: number | null;
+  total_volume_kg?: number;
 };
 
 export type SetLog = {

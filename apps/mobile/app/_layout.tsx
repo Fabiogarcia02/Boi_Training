@@ -7,6 +7,7 @@ import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { NotificationBell } from '../components/NotificationBell';
 
 function PushRegistration() {
   const { profile } = useAuth();
@@ -36,6 +37,7 @@ export default function RootLayout() {
           headerShadowVisible: false,
           headerTintColor: colors.ink,
           contentStyle: { backgroundColor: colors.bg },
+          headerRight: () => <NotificationBell />,
         }}
       >
         <Stack.Screen name="index" options={{ headerShown: false }} />

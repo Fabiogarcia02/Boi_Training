@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Button, Card, Input, Label, Muted, Title } from '../components/ui';
@@ -8,35 +8,19 @@ import { supabase } from '../lib/supabase';
 import { resolveAvatarUrl } from '../lib/avatar';
 import { Avatar } from '../components/Avatar';
 
+function ageFrom(date: string) {
+  const birthday = new Date(`${date}T00:00:00`); if (Number.isNaN(birthday.getTime())) return null;
+  const today = new Date(); let age = today.getFullYear() - birthday.getFullYear();
+  if (today < new Date(today.getFullYear(), birthday.getMonth(), birthday.getDate())) age -= 1; return age >= 0 ? age : null;
+}
 export default function PerfilScreen() {
-  const { profile, refreshProfile } = useAuth();
-  const [name, setName] = useState(profile?.full_name ?? ''); const [avatar, setAvatar] = useState(profile?.avatar_url ?? ''); const [bio, setBio] = useState(profile?.bio ?? ''); const [phone, setPhone] = useState(profile?.phone ?? ''); const [saving, setSaving] = useState(false); const [uploading, setUploading] = useState(false);
+  const { profile, session, refreshProfile } = useAuth();
+  const [name, setName] = useState(profile?.full_name ?? ''); const [avatar, setAvatar] = useState(profile?.avatar_url ?? ''); const [bio, setBio] = useState(profile?.bio ?? ''); const [phone, setPhone] = useState(profile?.phone ?? ''); const [birthDate, setBirthDate] = useState(profile?.birth_date ?? ''); const [cref, setCref] = useState(profile?.cref ?? ''); const [specialties, setSpecialties] = useState(profile?.specialties ?? ''); const [city, setCity] = useState(profile?.city ?? ''); const [instagram, setInstagram] = useState(profile?.instagram ?? ''); const [saving, setSaving] = useState(false); const [uploading, setUploading] = useState(false);
+  const age = useMemo(() => ageFrom(birthDate), [birthDate]);
   if (!profile) return null;
   const currentProfile = profile;
-  async function choosePhoto() {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) { Alert.alert('Permissão necessária', 'Autorize o acesso às fotos para escolher sua imagem de perfil.'); return; }
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.75 });
-    if (result.canceled) return;
-    setUploading(true);
-    try {
-      const asset = result.assets[0]; const response = await fetch(asset.uri); const bytes = await response.arrayBuffer(); const extension = asset.mimeType === 'image/png' ? 'png' : asset.mimeType === 'image/webp' ? 'webp' : 'jpg'; const path = `${currentProfile.id}/profile.${extension}`;
-      const { error: uploadError } = await supabase.storage.from('avatars').upload(path, bytes, { contentType: asset.mimeType ?? 'image/jpeg', upsert: true });
-      if (uploadError) throw uploadError;
-      const signedUrl = await resolveAvatarUrl(path);
-      const { error: profileError } = await supabase.from('profiles').update({ avatar_url: path }).eq('id', currentProfile.id);
-      if (profileError) throw profileError;
-      setAvatar(signedUrl ?? ''); await refreshProfile();
-    } catch (error) { Alert.alert('Não foi possível enviar a foto', error instanceof Error ? error.message : 'Tente novamente.'); } finally { setUploading(false); }
-  }
-  async function save() {
-    if (!name.trim()) { Alert.alert('Informe seu nome', 'O nome completo é obrigatório.'); return; }
-    setSaving(true); const { error } = await supabase.from('profiles').update({ full_name: name.trim(), bio: bio.trim(), phone: phone.trim() || null }).eq('id', currentProfile.id); setSaving(false);
-    if (error) Alert.alert('Não foi possível salvar', error.message); else { await refreshProfile(); Alert.alert('Perfil atualizado', 'Suas alterações foram salvas.'); }
-  }
-  return <ScrollView style={styles.screen} contentContainerStyle={styles.content}><Label>Meu perfil</Label><Title>{profile.role === 'professor' ? 'Perfil do professor' : 'Perfil do aluno'}</Title><Muted>Estas informações serão compartilhadas entre professor e aluno.</Muted>
-    <Card style={styles.card}><View style={styles.avatarWrap}><Avatar name={name} value={avatar} size={120} /></View><Button label={uploading ? 'Enviando foto…' : 'Escolher foto da galeria'} variant="ghost" onPress={choosePhoto} disabled={uploading} />
-      <View><Muted>Nome completo</Muted><Input placeholder="Digite seu nome" value={name} onChangeText={setName} /></View><View><Muted>Telefone</Muted><Input placeholder="(00) 00000-0000" value={phone} onChangeText={setPhone} keyboardType="phone-pad" /></View><View><Muted>Sobre você</Muted><Input placeholder="Conte um pouco sobre sua experiência e objetivos" value={bio} onChangeText={setBio} multiline style={styles.bio} /></View><Button label="Salvar perfil" onPress={save} loading={saving} /></Card>
-  </ScrollView>;
+  async function choosePhoto() { const permission = await ImagePicker.requestMediaLibraryPermissionsAsync(); if (!permission.granted) { Alert.alert('Permissão necessária', 'Autorize o acesso às fotos para escolher sua imagem de perfil.'); return; } const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.75 }); if (result.canceled) return; setUploading(true); try { const asset = result.assets[0]; const bytes = await fetch(asset.uri).then((response) => response.arrayBuffer()); const extension = asset.mimeType === 'image/png' ? 'png' : asset.mimeType === 'image/webp' ? 'webp' : 'jpg'; const path = `${currentProfile.id}/profile.${extension}`; const { error } = await supabase.storage.from('avatars').upload(path, bytes, { contentType: asset.mimeType ?? 'image/jpeg', upsert: true }); if (error) throw error; const signedUrl = await resolveAvatarUrl(path); const { error: profileError } = await supabase.from('profiles').update({ avatar_url: path }).eq('id', currentProfile.id); if (profileError) throw profileError; setAvatar(signedUrl ?? ''); await refreshProfile(); } catch (error) { Alert.alert('Não foi possível enviar a foto', error instanceof Error ? error.message : 'Tente novamente.'); } finally { setUploading(false); } }
+  async function save() { if (!name.trim()) { Alert.alert('Informe seu nome', 'O nome completo é obrigatório.'); return; } if (birthDate && !/^\d{4}-\d{2}-\d{2}$/.test(birthDate)) { Alert.alert('Data inválida', 'Use o formato AAAA-MM-DD.'); return; } setSaving(true); const { error } = await supabase.from('profiles').update({ full_name: name.trim(), bio: bio.trim(), phone: phone.trim() || null, birth_date: birthDate || null, cref: cref.trim() || null, specialties: specialties.trim() || null, city: city.trim() || null, instagram: instagram.trim() || null }).eq('id', currentProfile.id); setSaving(false); if (error) Alert.alert('Não foi possível salvar', error.message); else { await refreshProfile(); Alert.alert('Perfil atualizado', 'Suas alterações foram salvas.'); } }
+  return <ScrollView style={styles.screen} contentContainerStyle={styles.content}><Label>Meu perfil</Label><Title>{profile.role === 'professor' ? 'Perfil do personal' : 'Perfil do aluno'}</Title><Muted>Essas informações ajudam alunos e contatos a conhecerem você.</Muted><Card style={styles.card}><View style={styles.avatarWrap}><Avatar name={name} value={avatar} size={120} /></View><Button label={uploading ? 'Enviando foto…' : 'Alterar foto'} variant="ghost" onPress={choosePhoto} disabled={uploading} /><Muted>JPG, PNG ou WEBP</Muted><Muted>E-mail</Muted><Input value={session?.user.email ?? ''} editable={false} /><Muted>Nome completo</Muted><Input placeholder="Digite seu nome" value={name} onChangeText={setName} /><Muted>Telefone</Muted><Input placeholder="(00) 00000-0000" value={phone} onChangeText={setPhone} keyboardType="phone-pad" /><Muted>Data de nascimento (AAAA-MM-DD)</Muted><Input placeholder="1990-05-20" value={birthDate} onChangeText={setBirthDate} keyboardType="numbers-and-punctuation" />{age !== null ? <Muted>Idade calculada: {age} anos</Muted> : null}{profile.role === 'professor' ? <><Muted>CREF (opcional)</Muted><Input placeholder="Ex.: 123456-G/SP" value={cref} onChangeText={setCref} /><Muted>Especialidades</Muted><Input placeholder="Ex.: hipertrofia, funcional" value={specialties} onChangeText={setSpecialties} /><Muted>Cidade</Muted><Input placeholder="Sua cidade" value={city} onChangeText={setCity} /><Muted>Instagram (opcional)</Muted><Input placeholder="@seuinstagram" value={instagram} onChangeText={setInstagram} autoCapitalize="none" /></> : null}<Muted>Biografia</Muted><Input placeholder="Conte um pouco sobre sua experiência" value={bio} onChangeText={setBio} multiline style={styles.bio} />{profile.created_at ? <Muted>Na plataforma desde {new Date(profile.created_at).toLocaleDateString('pt-BR')}</Muted> : null}<Button label="Salvar perfil" onPress={save} loading={saving} /></Card></ScrollView>;
 }
-const styles = StyleSheet.create({ screen: { flex: 1, backgroundColor: colors.bg }, content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 48 }, card: { gap: spacing.md }, avatarWrap: { width: 120, height: 120, borderRadius: 60, alignSelf: 'center', overflow: 'hidden', backgroundColor: colors.redSoft, alignItems: 'center', justifyContent: 'center' }, bio: { minHeight: 100, textAlignVertical: 'top' } });
+const styles = StyleSheet.create({ screen: { flex: 1, backgroundColor: colors.bg }, content: { padding: spacing.lg, gap: spacing.md, paddingBottom: 48 }, card: { gap: spacing.sm }, avatarWrap: { width: 120, height: 120, borderRadius: 60, alignSelf: 'center', overflow: 'hidden', backgroundColor: colors.redSoft, alignItems: 'center', justifyContent: 'center' }, bio: { minHeight: 100, textAlignVertical: 'top' } });

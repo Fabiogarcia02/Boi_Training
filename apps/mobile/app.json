@@ -31,7 +31,7 @@
       "expo-router",
       "expo-font",
       "expo-notifications",
-      ["expo-image-picker", { "photosPermission": "Permita que o Touro Fit acesse suas fotos para atualizar sua imagem de perfil." }]
+      ["expo-image-picker", { "photosPermission": "Permita que o Touro Fit acesse suas fotos e vídeos para atualizar o perfil e a biblioteca de exercícios." }]
     ],
     "experiments": {
       "typedRoutes": true
